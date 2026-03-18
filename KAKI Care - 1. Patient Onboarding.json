@@ -1,0 +1,950 @@
+{
+  "name": "KAKI Care - 1. Patient Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "anthropic/claude-opus-4.5",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2224,
+        1024
+      ],
+      "id": "0e90d9fc-e9a5-4fd4-9419-54ed39cdd8dc",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "o3obB6AKFt9Gj3iD",
+          "name": "OpenRouter account 11"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "KAKI Care - Patient Onboarding",
+        "formDescription": "Upload patient documents to create their health profile",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Patient Name",
+              "placeholder": "e.g., Marcus Chen",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Age",
+              "fieldType": "number",
+              "placeholder": "e.g., 67",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "EHR Document (PDF)",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Doctor Transcript (PDF)",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bcc00cb1-77be-492d-8f16-3a5e05a11b5d",
+      "name": "Patient Onboarding Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        752
+      ],
+      "webhookId": "kaki-onboarding",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "cc6b37bc-ac53-46b4-a801-984c5591b3b6",
+      "name": "Merge OCR Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1904,
+        752
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "patient_name",
+              "name": "patient_name",
+              "value": "={{ $('Patient Onboarding Form').item.json['Patient Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "patient_age",
+              "name": "patient_age",
+              "value": "={{ $('Patient Onboarding Form').item.json['Age'] }}",
+              "type": "number"
+            },
+            {
+              "id": "ehr_text",
+              "name": "ehr_text",
+              "value": "={{ $('Gemini OCR - EHR').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "transcript_text",
+              "name": "transcript_text",
+              "value": "={{ $('Gemini OCR - Transcript').item.json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9bc91e84-1b1a-4ab8-b960-5e88758d87c1",
+      "name": "Combine All Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2096,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract a structured patient profile from these medical documents.\n\n=== EHR DOCUMENT ===\n{{ $json.ehr_text }}\n\n=== DOCTOR TRANSCRIPT ===\n{{ $json.transcript_text }}\n\n=== OUTPUT FORMAT ===\n\nReturn a JSON object with this exact structure:\n\n{\n  \"diseases\": [\n    {\n      \"name\": \"PRIMARY_DISEASE_ABBREVIATION\",\n      \"nyha_class\": \"CLASS_IF_CHF_OR_NULL\",\n      \"ejection_fraction\": \"PERCENTAGE_OR_NULL\",\n      \"comorbidities\": [\"other\", \"conditions\", \"as\", \"lowercase\"],\n      \"metrics\": [\"from_this_list_only: daily_weight, heart_rate, spo2, bp_systolic, bp_diastolic, blood_glucose, temperature\"],\n      \"thresholds\": {\n        \"metric_name\": \"concise threshold description\"\n      },\n      \"symptom_options\": [\"snake_case_symptoms\", \"relevant_to_primary_disease\"],\n      \"mood_options\": [\"great\", \"good\", \"okay\", \"bad\", \"struggling\"]\n    }\n  ],\n  \"medications\": [\n    {\n      \"name\": \"MedicationName\",\n      \"dosage\": \"XXmg\",\n      \"times\": [\"HH:MM\", \"HH:MM\"]\n    }\n  ]\n}\n\n=== RULES ===\n\n1. ONE disease entry only — use the PRIMARY diagnosis. List other conditions in \"comorbidities\".\n2. Use disease abbreviation for name (e.g., \"CHF\" not \"Congestive Heart Failure\").\n3. Thresholds should be concise (e.g., \"gain >2kg in 2 days\", \"below 94%\").\n4. symptom_options: only symptoms relevant to the PRIMARY disease, snake_case, 5-8 options.\n5. mood_options: always exactly [\"great\", \"good\", \"okay\", \"bad\", \"struggling\"].\n6. medications: only include medications mentioned in the documents, with exact dosages and times.\n7. times must be in 24h format (e.g., \"08:00\", \"14:00\", \"20:00\").",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a medical data extraction AI. Extract structured patient profiles from medical documents."
+        }
+      },
+      "id": "c8c54c3e-03ae-4b52-b685-f4a43e6df994",
+      "name": "AI Agent - Extract Profile",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2304,
+        752
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"diseases\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": { \"type\": \"string\" },\n          \"nyha_class\": { \"type\": [\"string\", \"null\"] },\n          \"ejection_fraction\": { \"type\": [\"string\", \"null\"] },\n          \"comorbidities\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n          \"metrics\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n          \"thresholds\": { \"type\": \"object\" },\n          \"symptom_options\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n          \"mood_options\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n        },\n        \"required\": [\"name\", \"metrics\", \"thresholds\", \"symptom_options\", \"mood_options\"]\n      }\n    },\n    \"medications\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": { \"type\": \"string\" },\n          \"dosage\": { \"type\": \"string\" },\n          \"times\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } }\n        },\n        \"required\": [\"name\", \"dosage\", \"times\"]\n      }\n    }\n  },\n  \"required\": [\"diseases\", \"medications\"]\n}",
+        "autoFix": true
+      },
+      "id": "fdb3ed2a-c945-4c1e-a131-4b04d77a8cee",
+      "name": "Structured Output Parser - Profile",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        2496,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO users (name, age, disease_profile) \nVALUES (\n  '{{ $('Combine All Data').item.json.patient_name }}',\n   {{ $('Combine All Data').item.json.patient_age }},\n  '{{ JSON.stringify($('AI Agent - Extract Profile').item.json.output) }}'::jsonb\n)\nRETURNING id, name;",
+        "options": {}
+      },
+      "id": "f19dc7a7-95ac-43d2-9fe2-02135240d534",
+      "name": "Postgres - Insert User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        2768,
+        752
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "postgres": {
+          "id": "hy0NA2Wudx5TJ3sQ",
+          "name": "postgres-kakicare"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user_id",
+              "name": "user_id",
+              "value": "={{ $json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "patient_name",
+              "name": "patient_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "ehr_text",
+              "name": "ehr_text",
+              "value": "={{ $node['Combine All Data'].json.ehr_text }}",
+              "type": "string"
+            },
+            {
+              "id": "transcript_text",
+              "name": "transcript_text",
+              "value": "={{ $node['Combine All Data'].json.transcript_text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8b855df1-f7d0-4806-9617-765d73b51a01",
+      "name": "Set User ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3008,
+        752
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a medical document processor. Clean and structure the following EHR document for AI reference.\n\n=== ORIGINAL DOCUMENT ===\n{{ $json.ehr_text }}\n\n=== INSTRUCTIONS ===\n1. Generate a descriptive document_name (e.g., \"EHR - Discharge Summary (Jan 2024)\")\n2. Clean and structure the content for future AI reference:\n   - Remove OCR artifacts and formatting issues\n   - Preserve all clinical information\n   - Structure with clear sections\n   - Keep it concise but complete\n\nReturn ONLY valid JSON matching the schema. No markdown, no explanation.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a medical document processor. Clean and optimize medical documents for AI reference. Return valid JSON only."
+        }
+      },
+      "id": "5c9d3ddc-e7f7-43f4-847d-e0d93146a088",
+      "name": "AI Agent - Process EHR",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        3264,
+        720
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"document_name\": \"EHR - Discharge Summary (Jan 2024)\",\n  \"content\": \"DISCHARGE SUMMARY\\n\\nPatient: Marcus Chen\\nDOB: 1959-05-12\\nAge: 67 years\\n\\nADMISSION DATE: 2024-01-15\\nDISCHARGE DATE: 2024-01-22\\n\\nPRIMARY DIAGNOSIS:\\nCongestive Heart Failure (CHF) - NYHA Class II\\n\\n...\"\n}"
+      },
+      "id": "0a129513-9304-4e83-a5da-de6fc409d856",
+      "name": "Structured Output Parser - EHR Doc",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        3456,
+        1024
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO documents (user_id, document_name, content) \nVALUES (\n  {{ $('Set User ID').item.json.user_id }},\n  '{{ $json.output.document_name.replace(/'/g, \"''\") }}',\n  '{{ $json.output.content.replace(/'/g, \"''\") }}'\n)\nRETURNING id;",
+        "options": {}
+      },
+      "id": "281e31dc-128c-40de-9a4d-7558fcc71b45",
+      "name": "Postgres - Insert EHR Doc",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        3600,
+        720
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "postgres": {
+          "id": "CHgDIx2gUkIe9sSw",
+          "name": "True Horizon DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a medical document processor. Clean and structure the following doctor-patient transcript for AI reference.\n\n=== ORIGINAL DOCUMENT ===\n{{ $node['Set User ID'].json.transcript_text }}\n\n=== INSTRUCTIONS ===\n1. Generate a descriptive document_name (e.g., \"Transcript - Cardiology Follow-up (Feb 2024)\")\n2. Clean and structure the content for future AI reference:\n   - Remove OCR artifacts and formatting issues\n   - Preserve the dialogue format and speaker labels\n   - Keep all medical advice and recommendations\n   - Structure chronologically\n\nReturn ONLY valid JSON matching the schema. No markdown, no explanation.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a medical document processor. Clean and optimize medical transcripts for AI reference. Return valid JSON only."
+        }
+      },
+      "id": "72984edc-ae13-4b93-9ec9-25307b2c4e45",
+      "name": "AI Agent - Process Transcript",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        3840,
+        720
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"document_name\": \"Transcript - Cardiology Follow-up (Feb 2024)\",\n  \"content\": \"APPOINTMENT TRANSCRIPT\\n\\nDate: 2024-02-05\\nPatient: Marcus Chen\\nProvider: Dr. Sarah Chen, Cardiologist\\n\\nDr. Chen: Hi Marcus, how have you been feeling since your discharge?\\n\\nMarcus: Much better overall...\\n...\"\n}"
+      },
+      "id": "58fce35b-3041-4ed2-9b3b-fac5ee39e33f",
+      "name": "Structured Output Parser - Transcript Doc",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4064,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO documents (user_id, document_name, content) \nVALUES (\n  {{ $node['Set User ID'].json.user_id }},\n  '{{ $json.output.document_name.replace(/'/g, \"''\") }}',\n  '{{ $json.output.content.replace(/'/g, \"''\") }}'\n)\nRETURNING id;",
+        "options": {}
+      },
+      "id": "3a4b8ab8-6245-4827-9283-10500d4ab284",
+      "name": "Postgres - Insert Transcript Doc",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        4176,
+        720
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "postgres": {
+          "id": "CHgDIx2gUkIe9sSw",
+          "name": "True Horizon DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"user_id\": {{ $('Set User ID').item.json.user_id }},\n  \"patient_name\": \"{{ $('Set User ID').item.json.patient_name }}\",\n  \"documents_inserted\": 2\n}",
+        "options": {}
+      },
+      "id": "2d9ab28e-8c34-4543-b135-15156c55cb91",
+      "name": "Return Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        4448,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        640
+      ],
+      "id": "49f1dfa1-d00c-47a7-a0d1-3e332964a1be",
+      "name": "Gemini OCR - EHR",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "JbFkiqBT16Ju3Ro2",
+          "name": "Google Gemini(PaLM) Api account 12"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        848
+      ],
+      "id": "edd1852b-f21b-492d-99a8-4e949a6fde58",
+      "name": "Gemini OCR - Transcript",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "JbFkiqBT16Ju3Ro2",
+          "name": "Google Gemini(PaLM) Api account 12"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ff74e29e-d7b0-4111-bd1f-155da625bef6",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2592,
+        752
+      ],
+      "id": "742f1eb1-295d-4619-a4d3-f93b2553bebe",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3744,
+        1008
+      ],
+      "id": "bb2c0f15-6466-49d6-b7bf-5fa58d144046",
+      "name": "Select rows from a table",
+      "credentials": {
+        "postgres": {
+          "id": "hy0NA2Wudx5TJ3sQ",
+          "name": "postgres-kakicare"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5.4-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3232,
+        1024
+      ],
+      "id": "43d09814-692a-46ea-a152-e2a27074c45b",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "o3obB6AKFt9Gj3iD",
+          "name": "OpenRouter account 11"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Combine All Data": [
+      {
+        "json": {
+          "patient_name": "Marcus",
+          "patient_age": 67,
+          "ehr_text": "DISCHARGE SUMMARY\n\nPatient: Marcus Chen\nDOB: 1959-05-12\nAge: 67 years\nMRN: 2847561\n\nADMISSION DATE: 2024-01-15\nDISCHARGE DATE: 2024-01-22\n\nPRIMARY DIAGNOSIS:\nCongestive Heart Failure (CHF) - NYHA Class II\nICD-10: I50.9\n\nSECONDARY DIAGNOSES:\n- Essential Hypertension (I10)\n- Type 2 Diabetes Mellitus without complications (E11.9)\n\nCLINICAL FINDINGS:\n- Ejection Fraction: 40% (mild to moderate reduction)\n- BNP on admission: 850 pg/mL (elevated)\n- Chest X-ray: Mild cardiomegaly, no acute infiltrates\n- ECG: Normal sinus rhythm, no acute changes\n\nHOSPITAL COURSE:\nPatient admitted with shortness of breath and bilateral lower extremity edema. Responded well to IV diuretics. Transitioned to oral medications with good response. Weight decreased from 79kg to 75kg during admission.\n\nDISCHARGE MEDICATIONS:\n1. Lisinopril 10mg - once daily in the morning\n2. Carvedilol 25mg - once daily in the morning\n3. Furosemide 40mg - three times daily (8AM, 2PM, 8PM)\n4. Metformin 500mg - twice daily with meals (for diabetes)\n\nDISCHARGE INSTRUCTIONS:\n- Daily weight monitoring - report gain >2kg in 2 days\n- Low sodium diet (<2000mg/day)\n- Fluid restriction 1.5-2L/day\n- Monitor for warning signs: increased shortness of breath, leg swelling, difficulty lying flat, rapid weight gain\n- Follow up with cardiology in 2 weeks\n\nFOLLOW-UP APPOINTMENTS:\n- Dr. Sarah Chen, Cardiology - Mount Sinai - 2024-02-05 at 10:00 AM\n\nAttending Physician: Dr. James Wong, MD\nCardiology Department\nMount Sinai Medical Center",
+          "transcript_text": "APPOINTMENT TRANSCRIPT\n\nDate: 2024-02-05\nPatient: Marcus Chen\nProvider: Dr. Sarah Chen, Cardiologist\n\n---\n\nDr. Chen: Hi Marcus, how have you been feeling since your discharge?\n\nMarcus: Much better overall. The swelling in my legs has gone down a lot. I have been checking my weight every morning like you asked.\n\nDr. Chen: Great to hear. What has your weight been?\n\nMarcus: It has been pretty steady around 75 to 75.5 kg. One day it went up to 76 but came back down the next day.\n\nDr. Chen: That is good. A small fluctuation like that is normal. We worry when it goes up more than 2 kg in just a couple of days. How about your breathing?\n\nMarcus: Better than before I was admitted. I can walk around the house without getting too winded. Going up stairs is still a bit hard though.\n\nDr. Chen: That is expected for NYHA Class II. You should be comfortable at rest and with light activity, but moderate exertion like stairs may cause some symptoms. Are you taking all your medications?\n\nMarcus: Yes, the Lisinopril and Carvedilol in the morning, and the Furosemide three times a day. Sometimes I forget the afternoon dose if I am out.\n\nDr. Chen: Try to be consistent with the Furosemide especially. It helps keep fluid from building up. Missing doses can lead to the swelling coming back. Maybe set a phone alarm?\n\nMarcus: Good idea, I will do that.\n\nDr. Chen: Any dizziness, chest pain, or palpitations?\n\nMarcus: No chest pain. Sometimes I feel a bit lightheaded when I stand up too fast.\n\nDr. Chen: That can happen with your blood pressure medications. Try standing up slowly. If it gets worse or you feel faint, let me know.\n\nDr. Chen: Overall you are doing well. Keep monitoring your weight daily. If you gain more than 2 kg in 2 days, or if you notice your ankles swelling again, shortness of breath getting worse, or you cannot lie flat at night, call us right away or go to the ER.\n\nMarcus: Understood.\n\nDr. Chen: I will see you again in 3 months unless anything comes up. Take care Marcus.\n\nMarcus: Thank you Dr. Chen."
+        }
+      }
+    ],
+    "AI Agent - Extract Profile": [
+      {
+        "json": {
+          "output": {
+            "diseases": [
+              {
+                "name": "CHF",
+                "nyha_class": "II",
+                "ejection_fraction": "40%",
+                "comorbidities": [
+                  "hypertension",
+                  "type 2 diabetes"
+                ],
+                "metrics": [
+                  "daily_weight",
+                  "blood_glucose",
+                  "bp_systolic",
+                  "bp_diastolic"
+                ],
+                "thresholds": {
+                  "daily_weight": "gain >2kg in 2 days"
+                },
+                "symptom_options": [
+                  "shortness_of_breath",
+                  "leg_swelling",
+                  "difficulty_lying_flat",
+                  "dizziness",
+                  "fatigue",
+                  "rapid_weight_gain",
+                  "chest_pain"
+                ],
+                "mood_options": [
+                  "great",
+                  "good",
+                  "okay",
+                  "bad",
+                  "struggling"
+                ]
+              }
+            ],
+            "medications": [
+              {
+                "name": "Lisinopril",
+                "dosage": "10mg",
+                "times": [
+                  "08:00"
+                ]
+              },
+              {
+                "name": "Carvedilol",
+                "dosage": "25mg",
+                "times": [
+                  "08:00"
+                ]
+              },
+              {
+                "name": "Furosemide",
+                "dosage": "40mg",
+                "times": [
+                  "08:00",
+                  "14:00",
+                  "20:00"
+                ]
+              },
+              {
+                "name": "Metformin",
+                "dosage": "500mg",
+                "times": [
+                  "08:00",
+                  "18:00"
+                ]
+              }
+            ]
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Edit Fields": [
+      {
+        "json": {
+          "output": {
+            "diseases": [
+              {
+                "name": "CHF",
+                "nyha_class": "II",
+                "ejection_fraction": "40%",
+                "comorbidities": [
+                  "hypertension",
+                  "type 2 diabetes"
+                ],
+                "metrics": [
+                  "daily_weight",
+                  "blood_glucose",
+                  "bp_systolic",
+                  "bp_diastolic"
+                ],
+                "thresholds": {
+                  "daily_weight": "gain >2kg in 2 days"
+                },
+                "symptom_options": [
+                  "shortness_of_breath",
+                  "leg_swelling",
+                  "difficulty_lying_flat",
+                  "dizziness",
+                  "fatigue",
+                  "rapid_weight_gain",
+                  "chest_pain"
+                ],
+                "mood_options": [
+                  "great",
+                  "good",
+                  "okay",
+                  "bad",
+                  "struggling"
+                ]
+              }
+            ],
+            "medications": [
+              {
+                "name": "Lisinopril",
+                "dosage": "10mg",
+                "times": [
+                  "08:00"
+                ]
+              },
+              {
+                "name": "Carvedilol",
+                "dosage": "25mg",
+                "times": [
+                  "08:00"
+                ]
+              },
+              {
+                "name": "Furosemide",
+                "dosage": "40mg",
+                "times": [
+                  "08:00",
+                  "14:00",
+                  "20:00"
+                ]
+              },
+              {
+                "name": "Metformin",
+                "dosage": "500mg",
+                "times": [
+                  "08:00",
+                  "18:00"
+                ]
+              }
+            ]
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Postgres - Insert User": [
+      {
+        "json": {
+          "id": 1,
+          "name": "Marcus"
+        }
+      }
+    ],
+    "Set User ID": [
+      {
+        "json": {
+          "user_id": 1,
+          "patient_name": "Marcus",
+          "ehr_text": "DISCHARGE SUMMARY\n\nPatient: Marcus Chen\nDOB: 1959-05-12\nAge: 67 years\nMRN: 2847561\n\nADMISSION DATE: 2024-01-15\nDISCHARGE DATE: 2024-01-22\n\nPRIMARY DIAGNOSIS:\nCongestive Heart Failure (CHF) - NYHA Class II\nICD-10: I50.9\n\nSECONDARY DIAGNOSES:\n- Essential Hypertension (I10)\n- Type 2 Diabetes Mellitus without complications (E11.9)\n\nCLINICAL FINDINGS:\n- Ejection Fraction: 40% (mild to moderate reduction)\n- BNP on admission: 850 pg/mL (elevated)\n- Chest X-ray: Mild cardiomegaly, no acute infiltrates\n- ECG: Normal sinus rhythm, no acute changes\n\nHOSPITAL COURSE:\nPatient admitted with shortness of breath and bilateral lower extremity edema. Responded well to IV diuretics. Transitioned to oral medications with good response. Weight decreased from 79kg to 75kg during admission.\n\nDISCHARGE MEDICATIONS:\n1. Lisinopril 10mg - once daily in the morning\n2. Carvedilol 25mg - once daily in the morning\n3. Furosemide 40mg - three times daily (8AM, 2PM, 8PM)\n4. Metformin 500mg - twice daily with meals (for diabetes)\n\nDISCHARGE INSTRUCTIONS:\n- Daily weight monitoring - report gain >2kg in 2 days\n- Low sodium diet (<2000mg/day)\n- Fluid restriction 1.5-2L/day\n- Monitor for warning signs: increased shortness of breath, leg swelling, difficulty lying flat, rapid weight gain\n- Follow up with cardiology in 2 weeks\n\nFOLLOW-UP APPOINTMENTS:\n- Dr. Sarah Chen, Cardiology - Mount Sinai - 2024-02-05 at 10:00 AM\n\nAttending Physician: Dr. James Wong, MD\nCardiology Department\nMount Sinai Medical Center",
+          "transcript_text": "APPOINTMENT TRANSCRIPT\n\nDate: 2024-02-05\nPatient: Marcus Chen\nProvider: Dr. Sarah Chen, Cardiologist\n\n---\n\nDr. Chen: Hi Marcus, how have you been feeling since your discharge?\n\nMarcus: Much better overall. The swelling in my legs has gone down a lot. I have been checking my weight every morning like you asked.\n\nDr. Chen: Great to hear. What has your weight been?\n\nMarcus: It has been pretty steady around 75 to 75.5 kg. One day it went up to 76 but came back down the next day.\n\nDr. Chen: That is good. A small fluctuation like that is normal. We worry when it goes up more than 2 kg in just a couple of days. How about your breathing?\n\nMarcus: Better than before I was admitted. I can walk around the house without getting too winded. Going up stairs is still a bit hard though.\n\nDr. Chen: That is expected for NYHA Class II. You should be comfortable at rest and with light activity, but moderate exertion like stairs may cause some symptoms. Are you taking all your medications?\n\nMarcus: Yes, the Lisinopril and Carvedilol in the morning, and the Furosemide three times a day. Sometimes I forget the afternoon dose if I am out.\n\nDr. Chen: Try to be consistent with the Furosemide especially. It helps keep fluid from building up. Missing doses can lead to the swelling coming back. Maybe set a phone alarm?\n\nMarcus: Good idea, I will do that.\n\nDr. Chen: Any dizziness, chest pain, or palpitations?\n\nMarcus: No chest pain. Sometimes I feel a bit lightheaded when I stand up too fast.\n\nDr. Chen: That can happen with your blood pressure medications. Try standing up slowly. If it gets worse or you feel faint, let me know.\n\nDr. Chen: Overall you are doing well. Keep monitoring your weight daily. If you gain more than 2 kg in 2 days, or if you notice your ankles swelling again, shortness of breath getting worse, or you cannot lie flat at night, call us right away or go to the ER.\n\nMarcus: Understood.\n\nDr. Chen: I will see you again in 3 months unless anything comes up. Take care Marcus.\n\nMarcus: Thank you Dr. Chen."
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Postgres - Insert EHR Doc": [
+      {
+        "json": {
+          "id": 1
+        }
+      }
+    ],
+    "AI Agent - Process EHR": [
+      {
+        "json": {
+          "output": {
+            "document_name": "EHR - Discharge Summary (Jan 2024)",
+            "content": "DISCHARGE SUMMARY\n\nPatient Information:\n- Name: Marcus Chen\n- Date of Birth: 1959-05-12\n- Age: 67 years\n- MRN: 2847561\n\nHospitalization Dates:\n- Admission Date: 2024-01-15\n- Discharge Date: 2024-01-22\n\nDiagnoses:\nPrimary Diagnosis:\n- Congestive Heart Failure (CHF), NYHA Class II\n- ICD-10: I50.9\n\nSecondary Diagnoses:\n- Essential Hypertension\n- ICD-10: I10\n- Type 2 Diabetes Mellitus without complications\n- ICD-10: E11.9\n\nClinical Findings:\n- Ejection fraction: 40% (mild to moderate reduction)\n- BNP on admission: 850 pg/mL (elevated)\n- Chest X-ray: Mild cardiomegaly, no acute infiltrates\n- ECG: Normal sinus rhythm, no acute changes\n\nHospital Course:\n- Admitted with shortness of breath and bilateral lower extremity edema.\n- Improved with IV diuretics.\n- Transitioned to oral medications with good response.\n- Weight decreased from 79 kg to 75 kg during admission.\n\nDischarge Medications:\n- Lisinopril 10 mg by mouth once daily in the morning\n- Carvedilol 25 mg by mouth once daily in the morning\n- Furosemide 40 mg by mouth three times daily at 08:00, 14:00, and 20:00\n- Metformin 500 mg by mouth twice daily with meals\n\nDischarge Instructions:\n- Daily weight monitoring; report weight gain greater than 2 kg in 2 days.\n- Low sodium diet: less than 2000 mg/day.\n- Fluid restriction: 1.5 to 2 L/day.\n- Monitor for warning signs: increased shortness of breath, leg swelling, difficulty lying flat, rapid weight gain.\n- Follow up with cardiology in 2 weeks.\n\nFollow-Up Appointment:\n- Dr. Sarah Chen, Cardiology, Mount Sinai\n- Date and Time: 2024-02-05 10:00 AM\n\nAttending Physician:\n- Dr. James Wong, MD\n- Cardiology Department\n- Mount Sinai Medical Center"
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Postgres - Insert Transcript Doc": [
+      {
+        "json": {
+          "id": 1
+        }
+      }
+    ],
+    "AI Agent - Process Transcript": [
+      {
+        "json": {
+          "output": {
+            "document_name": "Transcript - Cardiology Follow-up (Feb 2024)",
+            "content": "Date: 2024-02-05\nPatient: Marcus Chen\nProvider: Dr. Sarah Chen, Cardiologist\n\nDr. Chen: Hi Marcus, how have you been feeling since your discharge?\nMarcus: Much better overall. The swelling in my legs has gone down a lot. I have been checking my weight every morning like you asked.\nDr. Chen: Great to hear. What has your weight been?\nMarcus: It has been pretty steady around 75 to 75.5 kg. One day it went up to 76 kg but came back down the next day.\nDr. Chen: That is good. A small fluctuation like that is normal. We worry when it goes up more than 2 kg in just a couple of days. How about your breathing?\nMarcus: Better than before I was admitted. I can walk around the house without getting too winded. Going up stairs is still a bit hard though.\nDr. Chen: That is expected for NYHA Class II. You should be comfortable at rest and with light activity, but moderate exertion like stairs may cause some symptoms. Are you taking all your medications?\nMarcus: Yes, the Lisinopril and Carvedilol in the morning, and the Furosemide three times a day. Sometimes I forget the afternoon dose if I am out.\nDr. Chen: Try to be consistent with the Furosemide especially. It helps keep fluid from building up. Missing doses can lead to the swelling coming back. Maybe set a phone alarm?\nMarcus: Good idea, I will do that.\nDr. Chen: Any dizziness, chest pain, or palpitations?\nMarcus: No chest pain. Sometimes I feel a bit lightheaded when I stand up too fast.\nDr. Chen: That can happen with your blood pressure medications. Try standing up slowly. If it gets worse or you feel faint, let me know.\nDr. Chen: Overall you are doing well. Keep monitoring your weight daily. If you gain more than 2 kg in 2 days, or if you notice your ankles swelling again, shortness of breath getting worse, or you cannot lie flat at night, call us right away or go to the ER.\nMarcus: Understood.\nDr. Chen: I will see you again in 3 months unless anything comes up. Take care Marcus.\nMarcus: Thank you Dr. Chen."
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Extract Profile",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser - Profile",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge OCR Results": {
+      "main": [
+        [
+          {
+            "node": "Combine All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine All Data": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Extract Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Extract Profile": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - Profile": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Extract Profile",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Insert User": {
+      "main": [
+        [
+          {
+            "node": "Set User ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set User ID": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Process EHR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Process EHR": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Insert EHR Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - EHR Doc": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Process EHR",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Insert EHR Doc": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Process Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Process Transcript": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Insert Transcript Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser - Transcript Doc": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent - Process Transcript",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Insert Transcript Doc": {
+      "main": [
+        [
+          {
+            "node": "Return Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Patient Onboarding Form": {
+      "main": [
+        [
+          {
+            "node": "Gemini OCR - EHR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gemini OCR - Transcript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini OCR - EHR": {
+      "main": [
+        [
+          {
+            "node": "Merge OCR Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini OCR - Transcript": {
+      "main": [
+        [
+          {
+            "node": "Merge OCR Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Insert User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Process EHR",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent - Process Transcript",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "01a2677e-3186-4ca6-9f4a-f9bfcf25e89c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f0fc7dab00cade0db864c7b325e12f7997287a868429bd9e02881780c4c35ff8"
+  },
+  "id": "eoXNWOtHnHoBmSqn",
+  "tags": []
+}
