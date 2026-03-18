@@ -160,7 +160,7 @@ def _render_medications_section(
 def render(client, user_id: int) -> None:
     today = date.today().isoformat()
 
-    render_html(greeting_html("Today's Health Log", "", f"Date: {today}"))
+    render_html(greeting_html("Log your health data", "Today's Log", today))
 
     try:
         profile = get_disease_profile(client, user_id)

@@ -7,11 +7,11 @@ METRIC_CONFIG = {
 }
 
 MOOD_EMOJI_MAP = {
-    "great": "😄 Great",
-    "good": "🙂 Good",
-    "okay": "😐 Okay",
-    "bad": "😟 Bad",
-    "struggling": "😢 Struggling",
+    "great": "😄",
+    "good": "🙂",
+    "okay": "😐",
+    "bad": "😟",
+    "struggling": "😢",
 }
 
 def get_metric_config(metric_name: str) -> dict:

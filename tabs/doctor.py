@@ -81,16 +81,24 @@ def _plotly_area(x, traces: list[dict]) -> go.Figure:
 
 def render(client, user_id: int) -> None:
     render_html(greeting_html(
-        "Doctor Summary", "",
-        "Last updated: March 18, 2026  ·  Patient: Marcus Chen, 67  ·  CHF NYHA Class II"
+        "For your next visit",
+        "Doctor Summary",
+        "Patient: Marcus Chen, 67  ·  CHF NYHA Class II"
     ))
 
     with st.container(border=True):
         st.markdown(SOAP_SUMMARY)
 
     render_html(section_label_html("FLAGGED FOR DISCUSSION"))
-    for item in FLAGGED_ITEMS:
-        render_html(flagged_item_html(item))
+    items_html = "".join(flagged_item_html(item) for item in FLAGGED_ITEMS)
+    render_html(
+        f'<div style="background:#FFFBEC;border-radius:20px;padding:6px 18px 6px 18px;'
+        f'border:1px solid rgba(244,162,97,0.3);margin-bottom:16px;">'
+        f'<p style="font-size:12px;font-weight:700;color:#F4A261;margin:14px 0 10px 0;'
+        f'text-transform:uppercase;letter-spacing:0.8px;">⚠️ Flagged for Discussion</p>'
+        f'{items_html}'
+        f'</div>'
+    )
 
     history = get_recent_metrics(client, user_id, days=14)
     dates = [r["date"] for r in history]

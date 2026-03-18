@@ -19,7 +19,8 @@ import streamlit as st
 
 def inject_css() -> None:
     st.markdown(
-        '<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700&display=swap" rel="stylesheet">',
+        '<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600;700'
+        '&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">',
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -28,9 +29,11 @@ def inject_css() -> None:
 /* ── Page background ── */
 .stApp, [data-testid="stMain"], [data-testid="stAppViewContainer"] {{
     background: {BG} !important;
+    font-family: 'DM Sans', sans-serif !important;
 }}
 section[data-testid="stSidebar"] {{
     background: {CARD} !important;
+    padding: 1rem !important;
 }}
 [data-testid="stHeader"] {{
     background: transparent !important;
@@ -45,7 +48,7 @@ section[data-testid="stSidebar"] {{
 [data-testid="stTabs"] > div:first-child {{
     background: {CARD};
     border-radius: 14px;
-    padding: 4px;
+    padding: 2rem;
     gap: 2px;
     box-shadow: 0 2px 12px rgba(91,168,229,0.08);
 }}
@@ -58,6 +61,7 @@ section[data-testid="stSidebar"] {{
     border: none !important;
     background: transparent !important;
     transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif !important;
 }}
 [data-testid="stTabs"] button[data-baseweb="tab"][aria-selected="true"] {{
     background: {GRAD} !important;
@@ -77,10 +81,12 @@ button[kind="primary"] {{
     border: none !important;
     border-radius: 18px !important;
     color: white !important;
-    font-weight: 600;
-    padding: 10px 24px;
-    box-shadow: 0 4px 14px rgba(91,168,229,0.3) !important;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 24px;
+    box-shadow: 0 6px 18px rgba(91,168,229,0.35) !important;
     transition: opacity 0.2s;
+    font-family: 'DM Sans', sans-serif !important;
 }}
 [data-testid="stButton"] button[kind="primary"]:hover {{
     opacity: 0.9;
@@ -90,11 +96,12 @@ button[kind="primary"] {{
 [data-testid="stButton"] button[kind="secondary"],
 button[kind="secondary"] {{
     background: {CARD} !important;
-    border: 1.5px solid {BORDER} !important;
+    border: 1px solid {BORDER} !important;
     border-radius: 18px !important;
     color: {TEXT} !important;
     font-weight: 500;
     transition: border-color 0.2s;
+    font-family: 'DM Sans', sans-serif !important;
 }}
 [data-testid="stButton"] button[kind="secondary"]:hover {{
     border-color: {BLUE} !important;
@@ -107,9 +114,10 @@ div[data-testid="stHorizontalBlock"] [data-testid="stButton"] button {{
     white-space: nowrap !important;
     padding: 7px 13px !important;
     background: {CARD} !important;
-    border: 1.5px solid {BORDER} !important;
-    color: {TEXT} !important;
+    border: 1px solid {BORDER} !important;
+    color: {NAVY} !important;
     font-weight: 500;
+    font-family: 'DM Sans', sans-serif !important;
 }}
 div[data-testid="stHorizontalBlock"] [data-testid="stButton"] button:hover {{
     border-color: {BLUE} !important;
@@ -123,6 +131,9 @@ div[data-testid="stHorizontalBlock"] [data-testid="stButton"] button:hover {{
     border-radius: 12px !important;
     border: 2px solid transparent !important;
     color: {TEXT} !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    font-family: 'DM Sans', sans-serif !important;
     transition: border-color 0.2s;
 }}
 [data-testid="stNumberInput"] input:focus,
@@ -135,7 +146,7 @@ div[data-testid="stHorizontalBlock"] [data-testid="stButton"] button:hover {{
 [data-testid="stMultiSelect"] > div > div {{
     background: {BG} !important;
     border-radius: 12px !important;
-    border: 2px solid {BORDER} !important;
+    border: 1px solid {BORDER} !important;
 }}
 
 /* ── Checkboxes ── */
@@ -148,28 +159,28 @@ div[data-testid="stHorizontalBlock"] [data-testid="stButton"] button:hover {{
 /* ── Alerts: success ── */
 [data-testid="stAlert"][data-type="success"] {{
     background: rgba(82,183,136,0.1) !important;
-    border: 1.5px solid {GREEN} !important;
+    border: 1px solid {GREEN} !important;
     border-radius: 12px !important;
     color: {TEXT} !important;
 }}
 /* ── Alerts: info ── */
 [data-testid="stAlert"][data-type="info"] {{
     background: rgba(155,114,232,0.08) !important;
-    border: 1.5px solid {PURPLE} !important;
+    border: 1px solid {PURPLE} !important;
     border-radius: 12px !important;
     color: {TEXT} !important;
 }}
 /* ── Alerts: warning ── */
 [data-testid="stAlert"][data-type="warning"] {{
     background: rgba(244,162,97,0.1) !important;
-    border: 1.5px solid {AMBER} !important;
+    border: 1px solid {AMBER} !important;
     border-radius: 12px !important;
     color: {TEXT} !important;
 }}
 /* ── Alerts: error ── */
 [data-testid="stAlert"][data-type="error"] {{
     background: rgba(214,64,69,0.08) !important;
-    border: 1.5px solid {RED} !important;
+    border: 1px solid {RED} !important;
     border-radius: 12px !important;
     color: {TEXT} !important;
 }}
@@ -177,10 +188,10 @@ div[data-testid="stHorizontalBlock"] [data-testid="stButton"] button:hover {{
 /* ── Bordered containers ── */
 [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlock"][style*="border"] {{
     background: {CARD} !important;
-    border-radius: 16px !important;
-    border: 1.5px solid {BORDER} !important;
+    border-radius: 20px !important;
+    border: 1px solid {BORDER} !important;
     box-shadow: 0 2px 12px rgba(91,168,229,0.08) !important;
-    padding: 16px !important;
+    padding: 18px !important;
 }}
 
 /* ── Divider ── */
@@ -193,9 +204,10 @@ hr {{
 [data-testid="stChatInput"] textarea {{
     border-radius: 24px !important;
     background: {BG} !important;
-    border: 2px solid {BORDER} !important;
+    border: 1px solid {BORDER} !important;
     padding: 12px 20px !important;
     font-size: 14px;
+    font-family: 'DM Sans', sans-serif !important;
     transition: border-color 0.2s;
 }}
 [data-testid="stChatInput"] textarea:focus {{
@@ -213,15 +225,15 @@ hr {{
 [data-testid="stRadio"] > div > label {{
     background: {BG};
     border: 2px solid {BORDER};
-    border-radius: 50%;
+    border-radius: 12px;
     width: 52px;
-    height: 52px;
+    height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
+    transition: border-color 0.15s, background 0.15s;
     margin: 4px;
 }}
 [data-testid="stRadio"] > div > label:has(input:checked) {{
@@ -240,24 +252,30 @@ hr {{
 [data-testid="stRadio"] > div input[type="radio"] {{
     display: none;
 }}
-/* Hide the text span inside radio label, show only emoji */
-[data-testid="stRadio"] > div > label > div {{
-    display: none;
+[data-testid="stRadio"] > div > label > div:first-of-type {{
+    display: none !important;
 }}
-[data-testid="stRadio"] > div > label > p {{
+[data-testid="stRadio"] > div > label > p,
+[data-testid="stRadio"] > div > label > div {{
     margin: 0;
+    font-size: 22px;
 }}
 
 /* ── DataFrame ── */
 [data-testid="stDataFrame"] {{
     border-radius: 12px !important;
     overflow: hidden;
-    border: 1.5px solid {BORDER} !important;
+    border: 1px solid {BORDER} !important;
 }}
 
 /* ── Plotly charts ── */
 .js-plotly-plot .plotly .bg {{
     fill: transparent !important;
+}}
+
+/* ── Global text ── */
+p, span, div, label {{
+    font-family: 'DM Sans', sans-serif;
 }}
 </style>
 """,
@@ -273,38 +291,60 @@ def render_html(html: str) -> None:
 
 def section_label_html(text: str) -> str:
     return (
-        f'<p style="font-size:11px;font-weight:700;letter-spacing:0.08em;'
-        f'color:{MID};text-transform:uppercase;margin:20px 0 8px 2px;">{text}</p>'
+        f'<p style="font-size:11px;font-weight:700;letter-spacing:1px;'
+        f'color:{MID};text-transform:uppercase;margin:20px 0 10px 2px;'
+        f'font-family:\'DM Sans\',sans-serif;">{text}</p>'
     )
 
 
 def greeting_html(greeting: str, name: str, subtitle: str) -> str:
+    """greeting = small context line, name = big Lora heading, subtitle = small footer."""
+    greeting_part = (
+        f'<p style="font-size:13px;font-weight:500;color:{MID};margin:0 0 3px 0;'
+        f'font-family:\'DM Sans\',sans-serif;">{greeting}</p>'
+        if greeting else ""
+    )
     name_part = (
-        f'<span style="font-family:\'Lora\',serif;font-size:28px;font-weight:700;'
-        f'color:{TEXT};">{name}</span>'
+        f'<h1 style="font-family:\'Lora\',serif;font-size:27px;font-weight:600;'
+        f'color:{TEXT};margin:0 0 4px 0;line-height:1.2;">{name}</h1>'
         if name else ""
     )
-    greeting_part = (
-        f'<p style="font-family:\'Lora\',serif;font-size:24px;font-weight:600;'
-        f'color:{TEXT};margin:0 0 2px 0;">{greeting}</p>'
-    )
     subtitle_part = (
-        f'<p style="font-size:13px;color:{MID};margin:2px 0 12px 0;">{subtitle}</p>'
+        f'<p style="font-size:12px;color:{LIGHT};margin:0 0 12px 0;'
+        f'font-family:\'DM Sans\',sans-serif;">{subtitle}</p>'
         if subtitle else ""
     )
     return (
-        f'<div style="margin-bottom:4px;">'
+        f'<div style="margin-bottom:4px;padding:20px 0 0 0;">'
         f'{greeting_part}{name_part}{subtitle_part}'
         f'</div>'
     )
 
 
-def status_banner_html(text: str, detail: str) -> str:
+def status_banner_html(text: str, detail: str, streak: int | None = None) -> str:
+    streak_badge = ""
+    if streak is not None:
+        streak_badge = (
+            f'<div style="background:rgba(255,255,255,0.2);border-radius:14px;'
+            f'padding:10px 14px;text-align:center;flex-shrink:0;">'
+            f'<div style="font-size:24px;font-weight:800;color:white;">{streak}</div>'
+            f'<div style="font-size:10px;color:rgba(255,255,255,0.8);">day streak</div>'
+            f'</div>'
+        )
     return (
-        f'<div style="background:{GRAD};border-radius:22px;padding:20px 24px;'
-        f'margin:12px 0 20px 0;box-shadow:0 6px 24px rgba(91,168,229,0.28);">'
-        f'<p style="color:white;font-size:16px;font-weight:700;margin:0 0 4px 0;">{text}</p>'
-        f'<p style="color:rgba(255,255,255,0.82);font-size:13px;margin:0;">{detail}</p>'
+        f'<div style="background:{GRAD};border-radius:22px;padding:20px 22px;'
+        f'margin:12px 0 20px 0;box-shadow:0 8px 24px rgba(91,168,229,0.35);'
+        f'display:flex;justify-content:space-between;align-items:center;">'
+        f'<div style="flex:1;">'
+        f'<p style="font-size:10px;color:rgba(255,255,255,0.75);font-weight:700;'
+        f'text-transform:uppercase;letter-spacing:1.2px;margin:0 0 6px 0;'
+        f'font-family:\'DM Sans\',sans-serif;">Today\'s Status</p>'
+        f'<p style="color:white;font-size:20px;font-weight:700;margin:0 0 4px 0;'
+        f'font-family:\'Lora\',serif;">{text}</p>'
+        f'<p style="color:rgba(255,255,255,0.82);font-size:13px;margin:0;line-height:1.55;'
+        f'font-family:\'DM Sans\',sans-serif;">{detail}</p>'
+        f'</div>'
+        f'{streak_badge}'
         f'</div>'
     )
 
@@ -316,57 +356,79 @@ def vital_card_html(icon: str, label: str, value: str, unit: str, status: str = 
         "alert": RED,
     }.get(status, "transparent")
     dot = (
-        f'<span style="width:8px;height:8px;border-radius:50%;background:{dot_color};'
-        f'display:inline-block;margin-left:6px;vertical-align:middle;"></span>'
-        if status else ""
+        f'<div style="width:6px;height:6px;border-radius:50%;background:{dot_color};'
+        f'margin-top:8px;"></div>'
+        if status else '<div style="height:14px;"></div>'
     )
     return (
-        f'<div style="background:{CARD};border-radius:16px;padding:16px 18px;'
-        f'box-shadow:0 2px 12px rgba(91,168,229,0.08);border:1.5px solid {BORDER};flex:1;">'
-        f'<div style="font-size:22px;margin-bottom:4px;">{icon}</div>'
-        f'<p style="font-size:11px;font-weight:600;color:{MID};text-transform:uppercase;'
-        f'letter-spacing:0.06em;margin:0 0 4px 0;">{label}</p>'
-        f'<p style="font-size:22px;font-weight:700;color:{TEXT};margin:0;line-height:1.1;">'
-        f'{value}<span style="font-size:13px;font-weight:400;color:{MID};margin-left:4px;">'
-        f'{unit}</span>{dot}</p>'
+        f'<div style="background:{CARD};border-radius:16px;padding:14px 12px;'
+        f'box-shadow:0 2px 12px rgba(91,168,229,0.1);border:1px solid {BORDER};flex:1;">'
+        f'<div style="font-size:18px;margin-bottom:4px;">{icon}</div>'
+        f'<p style="font-size:10px;font-weight:600;color:{MID};text-transform:uppercase;'
+        f'letter-spacing:0.5px;margin:0 0 4px 0;font-family:\'DM Sans\',sans-serif;">{label}</p>'
+        f'<div style="display:flex;align-items:baseline;gap:3px;">'
+        f'<span style="font-size:20px;font-weight:700;color:{TEXT};'
+        f'font-family:\'DM Sans\',sans-serif;">{value}</span>'
+        f'<span style="font-size:11px;font-weight:400;color:{LIGHT};'
+        f'font-family:\'DM Sans\',sans-serif;">{unit}</span>'
+        f'</div>'
+        f'{dot}'
         f'</div>'
     )
 
 
 def two_vital_row_html(card1: str, card2: str) -> str:
     return (
-        f'<div style="display:flex;gap:12px;margin-bottom:12px;">'
+        f'<div style="display:flex;gap:10px;margin-bottom:10px;">'
         f'{card1}{card2}'
         f'</div>'
     )
 
 
 def medication_row_html(name: str, dosage: str, time: str, taken: bool) -> str:
-    circle_style = (
-        f'width:22px;height:22px;border-radius:50%;display:inline-flex;'
-        f'align-items:center;justify-content:center;font-size:13px;flex-shrink:0;'
-        f'background:{"rgba(82,183,136,0.15)" if taken else "rgba(214,64,69,0.08)"};'
-        f'border:2px solid {GREEN if taken else RED};'
-    )
-    icon = "✓" if taken else "✗"
-    icon_color = GREEN if taken else RED
+    if taken:
+        circle = (
+            f'<div style="width:22px;height:22px;border-radius:50%;background:{GREEN};'
+            f'display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+            f'<span style="font-size:11px;color:white;font-weight:700;">✓</span>'
+            f'</div>'
+        )
+        name_style = f'font-size:14px;font-weight:500;color:{LIGHT};margin:0;text-decoration:line-through;'
+        badge = ""
+    else:
+        circle = (
+            f'<div style="width:22px;height:22px;border-radius:50%;background:{CARD};'
+            f'border:2px solid {BORDER};flex-shrink:0;"></div>'
+        )
+        name_style = f'font-size:14px;font-weight:500;color:{TEXT};margin:0;'
+        badge = (
+            f'<span style="font-size:11px;font-weight:600;color:{AMBER};'
+            f'background:#FEF3E2;padding:3px 10px;border-radius:20px;white-space:nowrap;">Due</span>'
+        )
     return (
         f'<div style="display:flex;align-items:center;gap:12px;padding:10px 0;'
         f'border-bottom:1px solid {BORDER};">'
-        f'<div style="{circle_style}"><span style="color:{icon_color};font-weight:700;">{icon}</span></div>'
+        f'{circle}'
         f'<div style="flex:1;">'
-        f'<p style="margin:0;font-size:14px;font-weight:600;color:{TEXT};">{name}</p>'
-        f'<p style="margin:0;font-size:12px;color:{MID};">{dosage} · {time}</p>'
+        f'<p style="{name_style}font-family:\'DM Sans\',sans-serif;">{name}</p>'
+        f'<p style="margin:0;font-size:11px;color:{LIGHT};font-family:\'DM Sans\',sans-serif;">'
+        f'{dosage} · {time}</p>'
         f'</div>'
+        f'{badge}'
         f'</div>'
     )
 
 
 def medication_card_html(rows_html: str) -> str:
     return (
-        f'<div style="background:{CARD};border-radius:16px;padding:4px 18px 8px 18px;'
-        f'box-shadow:0 2px 12px rgba(91,168,229,0.08);border:1.5px solid {BORDER};'
+        f'<div style="background:{CARD};border-radius:20px;padding:4px 18px 8px 18px;'
+        f'box-shadow:0 2px 12px rgba(91,168,229,0.08);border:1px solid {BORDER};'
         f'margin-bottom:16px;">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;'
+        f'padding:14px 0 10px 0;">'
+        f'<p style="font-size:15px;font-weight:600;color:{TEXT};margin:0;'
+        f'font-family:\'DM Sans\',sans-serif;">💊 Medications</p>'
+        f'</div>'
         f'{rows_html}'
         f'</div>'
     )
@@ -374,11 +436,17 @@ def medication_card_html(rows_html: str) -> str:
 
 def insight_card_html(text: str) -> str:
     return (
-        f'<div style="background:linear-gradient(135deg,rgba(91,168,229,0.08) 0%,'
-        f'rgba(155,114,232,0.10) 100%);border-radius:16px;padding:18px 20px;'
-        f'border:1.5px solid {BORDER};margin-bottom:16px;">'
-        f'<p style="font-size:13px;font-style:italic;color:{TEXT};margin:0;line-height:1.65;">'
-        f'📊 {text}</p>'
+        f'<div style="background:linear-gradient(135deg,#EEF0FB 0%,#F0EAF8 100%);'
+        f'border-radius:20px;padding:18px 20px;'
+        f'border:1px solid rgba(155,114,232,0.2);margin-bottom:16px;">'
+        f'<p style="font-size:10px;font-weight:700;margin:0 0 8px 0;'
+        f'text-transform:uppercase;letter-spacing:1px;'
+        f'background:{GRAD};-webkit-background-clip:text;-webkit-text-fill-color:transparent;'
+        f'background-clip:text;font-family:\'DM Sans\',sans-serif;">✨ KAKI\'s Insight</p>'
+        f'<p style="font-size:13.5px;font-style:italic;color:{TEXT};margin:0 0 10px 0;'
+        f'line-height:1.68;font-family:\'DM Sans\',sans-serif;">{text}</p>'
+        f'<p style="font-size:11.5px;color:{MID};margin:0;'
+        f'font-family:\'DM Sans\',sans-serif;">💡 Based on your last 7 days of data</p>'
         f'</div>'
     )
 
@@ -386,20 +454,22 @@ def insight_card_html(text: str) -> str:
 def chat_bubble_html(role: str, content: str) -> str:
     if role == "user":
         return (
-            f'<div style="display:flex;justify-content:flex-end;margin:8px 0;">'
+            f'<div style="display:flex;justify-content:flex-end;margin:8px 0 14px 0;">'
             f'<div style="background:{GRAD};color:white;border-radius:18px 18px 4px 18px;'
-            f'padding:11px 16px;max-width:78%;font-size:14px;line-height:1.55;'
-            f'box-shadow:0 2px 8px rgba(91,168,229,0.2);">{content}</div>'
+            f'padding:12px 15px;max-width:74%;font-size:14px;line-height:1.65;'
+            f'box-shadow:0 4px 14px rgba(91,168,229,0.3);'
+            f'font-family:\'DM Sans\',sans-serif;">{content}</div>'
             f'</div>'
         )
     else:
         return (
-            f'<div style="display:flex;align-items:flex-start;gap:10px;margin:8px 0;">'
-            f'<div style="width:32px;height:32px;border-radius:50%;background:{GRAD};'
-            f'display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">💙</div>'
+            f'<div style="display:flex;align-items:flex-end;gap:8px;margin:8px 0 14px 0;">'
+            f'<div style="width:30px;height:30px;border-radius:50%;background:{GRAD};'
+            f'display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">💙</div>'
             f'<div style="background:{CARD};color:{TEXT};border-radius:18px 18px 18px 4px;'
-            f'padding:11px 16px;max-width:78%;font-size:14px;line-height:1.55;'
-            f'box-shadow:0 2px 8px rgba(91,168,229,0.08);border:1.5px solid {BORDER};">'
+            f'padding:12px 15px;max-width:74%;font-size:14px;line-height:1.65;'
+            f'box-shadow:0 2px 8px rgba(0,0,0,0.07);border:1px solid {BORDER};'
+            f'font-family:\'DM Sans\',sans-serif;">'
             f'{content}</div>'
             f'</div>'
         )
@@ -407,8 +477,9 @@ def chat_bubble_html(role: str, content: str) -> str:
 
 def suggestion_pills_html(suggestions: list[str]) -> str:
     pills = "".join(
-        f'<span style="background:{CARD};border:1.5px solid {BORDER};border-radius:20px;'
-        f'padding:7px 14px;font-size:12px;color:{TEXT};font-weight:500;white-space:nowrap;">'
+        f'<span style="background:{CARD};border:1px solid {BORDER};border-radius:20px;'
+        f'padding:7px 14px;font-size:12px;color:{NAVY};font-weight:500;white-space:nowrap;'
+        f'font-family:\'DM Sans\',sans-serif;">'
         f'{s}</span>'
         for s in suggestions
     )
@@ -419,44 +490,61 @@ def suggestion_pills_html(suggestions: list[str]) -> str:
 
 def crisis_banner_html(crisis_type: str) -> str:
     if crisis_type == "mental":
+        title = "💙 KAKI is here with you"
         msg = (
-            "It sounds like you may be in emotional distress. "
-            "Please reach out to the <strong>Samaritans of Singapore: 1-767</strong> (24/7) "
-            "or text <strong>IMH CAREline: 6389 2222</strong>. You are not alone. 💙"
+            "You don't have to carry this alone. A real person is always available at the "
+            "<strong>Samaritans of Singapore: 1-767</strong> or "
+            "<strong>IMH CAREline: 6389 2222</strong> — free, confidential, 24/7."
         )
-        bg = f"linear-gradient(135deg,{NAVY} 0%,#5B3DAA 100%)"
+        bg = f"linear-gradient(135deg,#1E1B4B 0%,#3B1E6B 100%)"
+        border = "rgba(155,114,232,0.5)"
     else:
+        title = "⚠️ Contact your care team now"
         msg = (
-            "This sounds like a medical emergency. "
-            "<strong>Call 995 (SCDF Ambulance) immediately</strong> or ask someone nearby for help."
+            "Your vitals need immediate attention. "
+            "<strong>Call 995 (SCDF Ambulance) immediately</strong> "
+            "or go to your nearest emergency room right away."
         )
-        bg = f"linear-gradient(135deg,{RED} 0%,#A01B1B 100%)"
+        bg = f"linear-gradient(135deg,#3D0A0A 0%,{RED} 100%)"
+        border = "rgba(214,64,69,0.5)"
     return (
-        f'<div style="background:{bg};border-radius:14px;padding:16px 20px;'
-        f'margin:10px 0;box-shadow:0 4px 16px rgba(0,0,0,0.25);">'
-        f'<p style="color:white;font-size:14px;margin:0;line-height:1.6;">🆘 {msg}</p>'
+        f'<div style="background:{bg};border-radius:20px;padding:18px 20px;'
+        f'margin:10px 0;box-shadow:0 12px 40px rgba(0,0,0,0.3);'
+        f'border:1px solid {border};">'
+        f'<p style="font-size:14px;font-weight:700;color:white;margin:0 0 8px 0;'
+        f'font-family:\'DM Sans\',sans-serif;">🆘 {title}</p>'
+        f'<p style="color:rgba(255,255,255,0.75);font-size:13px;margin:0;line-height:1.65;'
+        f'font-family:\'DM Sans\',sans-serif;">{msg}</p>'
         f'</div>'
     )
 
 
 def flagged_item_html(text: str) -> str:
     return (
-        f'<div style="background:#FFFBEC;border-left:4px solid {AMBER};border-radius:0 10px 10px 0;'
-        f'padding:12px 16px;margin:8px 0;font-size:13px;color:{TEXT};line-height:1.55;">'
-        f'⚠️ {text}'
+        f'<div style="display:flex;gap:10px;padding:12px 0;'
+        f'border-bottom:1px solid rgba(244,162,97,0.2);">'
+        f'<span style="color:{AMBER};flex-shrink:0;font-size:14px;">•</span>'
+        f'<p style="font-size:13px;color:{TEXT};margin:0;line-height:1.55;'
+        f'font-family:\'DM Sans\',sans-serif;">{text}</p>'
         f'</div>'
     )
 
 
 def chat_header_html() -> str:
     return (
-        f'<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">'
-        f'<div style="width:48px;height:48px;border-radius:50%;background:{GRAD};'
-        f'display:flex;align-items:center;justify-content:center;font-size:24px;'
-        f'box-shadow:0 4px 14px rgba(91,168,229,0.3);">💙</div>'
+        f'<div style="background:{GRAD};border-radius:20px;padding:14px 20px;'
+        f'margin:8px 0 16px 0;'
+        f'box-shadow:0 4px 20px rgba(91,168,229,0.3);">'
+        f'<div style="display:flex;align-items:center;gap:12px;">'
+        f'<div style="width:44px;height:44px;border-radius:50%;'
+        f'background:rgba(255,255,255,0.25);'
+        f'display:flex;align-items:center;justify-content:center;font-size:22px;'
+        f'flex-shrink:0;border:2px solid rgba(255,255,255,0.5);">💙</div>'
         f'<div>'
-        f'<p style="font-family:\'Lora\',serif;font-size:22px;font-weight:700;color:{TEXT};margin:0;">KAKI</p>'
-        f'<p style="font-size:13px;color:{MID};margin:0;">Your AI health companion</p>'
+        f'<p style="font-family:\'Lora\',serif;font-size:17px;font-weight:700;'
+        f'color:white;margin:0;">KAKI</p>'
+        f'<p style="font-size:12px;color:rgba(255,255,255,0.7);margin:0;">Your CHF Companion · Always here</p>'
+        f'</div>'
         f'</div>'
         f'</div>'
     )

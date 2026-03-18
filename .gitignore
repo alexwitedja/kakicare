@@ -57,4 +57,5 @@ logs/
 *.zip
 
 .claude/
-.streamlit
+.streamlit/
+sample-frontend/

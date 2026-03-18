@@ -49,7 +49,7 @@ def render(client, user_id: int) -> None:
     name = get_user_name(client, user_id)
     hour = datetime.datetime.now().hour
     greeting = "Good morning" if hour < 12 else ("Good afternoon" if hour < 18 else "Good evening")
-    render_html(greeting_html(f"{greeting}, {name} 👋", "", "March 18, 2026  ·  CHF NYHA Class II"))
+    render_html(greeting_html(greeting, f"{name} 👋", "March 18, 2026  ·  CHF NYHA Class II"))
     render_html(status_banner_html(
         "You're on track today",
         "Weight returning to baseline · SpO₂ stable at 96% · Keep up the good work!"

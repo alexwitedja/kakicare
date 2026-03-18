@@ -18,6 +18,8 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+There are no tests or linting configs in this repo. The SQLite path (`kaki_care.db`) is auto-created on first run and can be deleted to reset demo data.
+
 Copy `.env.example` to `.env` before running. Key env vars:
 
 | Variable | Default | Purpose |
@@ -43,9 +45,18 @@ Copy `.env.example` to `.env` before running. Key env vars:
 `app.py` creates a single-page 4-tab layout. Each tab is a module in `tabs/` with a `render(client, user_id)` function (chat tab takes only `user_id`).
 
 - **`tabs/home.py`** — reads vitals/wearables/meds, renders metric cards, a hardcoded AI insight string, and a 7-day BP line chart
-- **`tabs/chat.py`** — chat UI with crisis detection (mental → 988/IMH, vitals → 995). `_get_response()` is a **stub** pending n8n webhook integration
+- **`tabs/chat.py`** — chat UI with keyword-based crisis detection (`_detect_crisis()`). On crisis, a banner is injected into the assistant message turn (does not block the chat flow). `_get_response()` is a **stub** pending n8n webhook integration. Chat history lives in `st.session_state.kaki_messages`; suggestion pills use `st.session_state.kaki_pending` as a one-shot trigger.
 - **`tabs/track.py`** — form-based daily logging; reads profile to render only the patient's tracked metrics dynamically; upserts on submit
-- **`tabs/doctor.py`** — renders a **hardcoded** SOAP summary and flagged items (static strings), plus live 14-day trend charts from DB
+- **`tabs/doctor.py`** — renders a **hardcoded** SOAP summary and flagged items (static strings), plus live 14-day trend charts from DB. "Share with Doctor" button is a stub pending n8n Export workflow.
+
+### UI / Design System
+
+All visual output goes through `utils/style.py`. Never use `st.markdown` directly for styled content in tabs — use the helpers:
+
+- **`render_html(html)`** — thin wrapper around `st.markdown(..., unsafe_allow_html=True)`
+- **HTML builder functions** — `vital_card_html`, `medication_row_html`, `chat_bubble_html`, `crisis_banner_html`, `flagged_item_html`, `greeting_html`, `status_banner_html`, etc.
+- **Design tokens** — color constants (`BG`, `CARD`, `TEXT`, `BLUE`, `PURPLE`, `GREEN`, `AMBER`, `RED`, `GRAD`, etc.) are defined at the top of `style.py` and used inside every HTML builder. Import them directly when building new HTML strings.
+- `inject_css()` is called once in `app.py` at startup; it loads Lora font and overrides Streamlit's default chrome via `!important` rules.
 
 ### Metric Configuration
 
